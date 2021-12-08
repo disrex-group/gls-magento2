@@ -151,20 +151,38 @@ class QuoteManagement
      */
     public function mapDeliveryAddress($shipping, $billing)
     {
-        return (object) [
-            'name1'         => $shipping->getName(),
-            'street'        => $shipping->getStreetLine(1),
-            'houseNo'       => substr($shipping->getStreetLine(2), 0, 10),
-            'name2'         => $shipping->getStreetLine(2),
-            'name3'         => $shipping->getStreetLine(3),
-            'countryCode'   => $shipping->getCountryId(),
-            'zipCode'       => $shipping->getPostcode(),
-            'city'          => $shipping->getCity(),
-            // If Shipping Address is same as Billing Address, Email is only saved in Billing.
-            'email'         => $shipping->getEmail() ?: $billing->getEmail(),
-            'phone'         => $shipping->getTelephone() ?: '+00000000000',
-            'addresseeType' => $shipping->getCompany() ? 'b' : 'p'
-        ];
+        $company = $shipping->getCompany();
+        if(isset($company) && strlen($company) > 2) {
+            return (object)[
+                'name1' => $company,
+                'street' => $shipping->getStreetLine(1),
+                'houseNo' => substr($shipping->getStreetLine(2), 0, 10),
+                'name2' => $shipping->getName(),
+                'name3' => $shipping->getStreetLine(3),
+                'countryCode' => $shipping->getCountryId(),
+                'zipCode' => $shipping->getPostcode(),
+                'city' => $shipping->getCity(),
+                // If Shipping Address is same as Billing Address, Email is only saved in Billing.
+                'email' => $shipping->getEmail() ?: $billing->getEmail(),
+                'phone' => $shipping->getTelephone() ?: '+00000000000',
+                'addresseeType' => $shipping->getCompany() ? 'b' : 'p'
+            ];
+        } else {
+            return (object)[
+                'name1' => $shipping->getName(),
+                'street' => $shipping->getStreetLine(1),
+                'houseNo' => substr($shipping->getStreetLine(2), 0, 10),
+                'name2' => $shipping->getStreetLine(2),
+                'name3' => $shipping->getStreetLine(3),
+                'countryCode' => $shipping->getCountryId(),
+                'zipCode' => $shipping->getPostcode(),
+                'city' => $shipping->getCity(),
+                // If Shipping Address is same as Billing Address, Email is only saved in Billing.
+                'email' => $shipping->getEmail() ?: $billing->getEmail(),
+                'phone' => $shipping->getTelephone() ?: '+00000000000',
+                'addresseeType' => $shipping->getCompany() ? 'b' : 'p'
+            ];
+        }
     }
 
     /**
