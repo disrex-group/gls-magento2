@@ -152,12 +152,19 @@ class QuoteManagement
     public function mapDeliveryAddress($shipping, $billing)
     {
         $company = $shipping->getCompany();
+        $shippingName = $shipping->getName();
+        if(strlen($shippingName) > 30) {
+            $shippingName = substr($shippingName, 0, 30);
+        }
         if(isset($company) && strlen($company) > 2) {
+            if(strlen($company) > 30) {
+                $company = substr($company, 0, 30);
+            }
             return (object)[
                 'name1' => $company,
                 'street' => $shipping->getStreetLine(1),
                 'houseNo' => substr($shipping->getStreetLine(2), 0, 10),
-                'name2' => $shipping->getName(),
+                'name2' => $shippingName,
                 'name3' => $shipping->getStreetLine(3),
                 'countryCode' => $shipping->getCountryId(),
                 'zipCode' => $shipping->getPostcode(),
@@ -169,7 +176,7 @@ class QuoteManagement
             ];
         } else {
             return (object)[
-                'name1' => $shipping->getName(),
+                'name1' => $shippingName,
                 'street' => $shipping->getStreetLine(1),
                 'houseNo' => substr($shipping->getStreetLine(2), 0, 10),
                 'name2' => $shipping->getStreetLine(2),
