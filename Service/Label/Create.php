@@ -43,6 +43,7 @@ use TIG\GLS\Model\Config\Provider\Carrier;
 use TIG\GLS\Plugin\Quote\Model\QuoteManagement;
 use TIG\GLS\Service\ShippingDate;
 use TIG\GLS\Webservice\Endpoint\Label\Create as EndpointLabelCreate;
+use Magento\Framework\App\ResourceConnection;
 
 /**
  * Class Create
@@ -111,6 +112,10 @@ class Create extends ShippingInformation
      */
     private $quoteManagement;
 
+    /** @var ResourceConnection */
+    private $resourceConnection;
+
+
     /**
      * @param EndpointLabelCreate         $createLabel
      * @param ShipmentRepositoryInterface $shipmentRepository
@@ -125,7 +130,8 @@ class Create extends ShippingInformation
         Carrier $carrierConfig,
         ScopeConfigInterface $scopeConfig,
         ShippingDate $shippingDate,
-        QuoteManagement $quoteManagement
+        QuoteManagement $quoteManagement,
+        ResourceConnection $resourceConnection
     ) {
         $this->createLabel        = $createLabel;
         $this->shipmentRepository = $shipmentRepository;
@@ -133,6 +139,7 @@ class Create extends ShippingInformation
         $this->scopeConfig        = $scopeConfig;
         $this->shippingDate       = $shippingDate;
         $this->quoteManagement    = $quoteManagement;
+        $this->resourceConnection = $resourceConnection;
     }
 
     /**
@@ -196,7 +203,16 @@ class Create extends ShippingInformation
             return false;
         }
 
-        $deliveryAddress = $deliveryOption->deliveryAddress;
+        $channable = false;
+        try {
+            $deliveryAddress = $this->addChannableIdIfAvailable($deliveryOption->deliveryAddress, $order->getId());
+            $channable = true; // just a precaution, this may fail due to no Channable tables
+        } catch (\Exception $exception) {
+            // just catch
+        }
+        if(!$channable) {
+            $deliveryAddress = $deliveryOption->deliveryAddress;
+        }
         $labelType       = $this->getLabelType();
 
         $data                      = $this->addShippingInformation($controllerModule, $version);
@@ -225,6 +241,34 @@ class Create extends ShippingInformation
         }
 
         return $data;
+    }
+
+    /**
+     * addChannableIdIfAvailable
+     *      - bol.com (or other channable connector) and channable order id (channel id)
+     *      - customize this to your liking
+     *
+     * @param $deliveryAddress
+     * @param $orderId
+     * @return mixed
+     */
+    public function addChannableIdIfAvailable($deliveryAddress, $orderId) {
+        $connection = $this->resourceConnection->getConnection();
+        $selectData = $connection->select()
+            ->from(
+                $this->resourceConnection->getTableName('channable_orders'),
+                [
+                    'channel_id',
+                    'channable_id',
+                    'channel_label',
+                    'channel_name',
+                ]
+            )->where('magento_order_id = ?', $orderId);
+        $data = $connection->fetchRow($selectData);
+        if ($data) {
+            $deliveryAddress->name2 = $data['channel_label'].' '.$data['channel_id'];
+        }
+        return $deliveryAddress;
     }
 
     /**
