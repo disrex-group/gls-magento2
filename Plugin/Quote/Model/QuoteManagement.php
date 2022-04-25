@@ -77,14 +77,19 @@ class QuoteManagement
     // @codingStandardsIgnoreLine
     public function beforePlaceOrder($subject, $cartId)
     {
+        $isChannableOrder = false; // is it a channable order
         $quote           = $this->cartRepository->getActive($cartId);
+        $payment         = $quote->getPayment()->getMethod();
+        if(trim($payment) == 'channable') {
+            $isChannableOrder = true; // it is a channable order
+        }
         $shippingAddress = $quote->getShippingAddress();
         $billingAddress  = $quote->getBillingAddress();
         $deliveryOption  = $shippingAddress->getGlsDeliveryOption();
         $apiOrder = false;
 
         if (!$deliveryOption) {
-            if($this->carrier->getAllowApiOrderService()) {
+            if($this->carrier->getAllowApiOrderService() || ($this->carrier->getAllowChannableOrderService() && $isChannableOrder)) {
                 $deliveryOption = $this->getDeliveryOptionsForApiOrder($shippingAddress, $billingAddress);
                 if (!isset($deliveryOption) || !$deliveryOption) {
                     return;
@@ -112,7 +117,10 @@ class QuoteManagement
     }
 
     /**
-     * If order is placed through Magento API and auto-select is enabled,
+     * getDeliveryOptionsForApiOrder
+     *
+     * If order is placed through Magento API and auto-select is enabled
+     * or it is a channable order and auto-select is enabled
      * order gets first available delivery time.
      *
      * @param $shippingAddress
@@ -124,7 +132,11 @@ class QuoteManagement
         $postcode = $shippingAddress->getPostcode();
         $services = $this->services->getDeliveryOptions($countryCode, 'NL', $postcode);
         $deliveryOptions = (isset($services['deliveryOptions'])) ? $services['deliveryOptions'] : null;
-        if(isset($services['deliveryOptions'])) {
+        if(isset($deliveryOptions)) {
+            // filter options to avoid saterday service and other disabeld options
+            if(is_array($deliveryOptions) && count($deliveryOptions) > 1) {
+                $deliveryOptions = $this->filterDeliveryOptions($deliveryOptions);
+            }
             $deliveryAddress = $this->mapDeliveryAddress($shippingAddress, $billingAddress);
             $autoSelectDelivery = $deliveryOptions[0];
             $autoSelectDelivery['isService'] = false;
@@ -139,6 +151,36 @@ class QuoteManagement
         } else {
             return null;
         }
+    }
+
+    /**
+     * filterDeliveryOptions
+     *
+     * Filter options for auto-select
+     *
+     * @param $options
+     * @return array
+     */
+    private function filterDeliveryOptions(&$options)
+    {
+        $isExpressServicesActive = $this->carrier->isExpressParcelActive();
+        $isSaturdayServiceActive = $this->carrier->isSaturdayServiceActive();
+        $options = array_filter(
+            $options,
+            function ($details) use ($isExpressServicesActive, $isSaturdayServiceActive) {
+                // Always allow BusinessParcel (the default service)
+                return !isset($details['service'])
+                    // Allow SaturdayService if active.
+                    || ($isSaturdayServiceActive
+                        && ($details['service'] == CarrierConfig::GLS_DELIVERY_OPTION_SATURDAY_LABEL))
+                    // Allow Express Delivery Services if active.
+                    || ($isExpressServicesActive
+                        && ($details['service'] == CarrierConfig::GLS_DELIVERY_OPTION_EXPRESS_LABEL));
+            }
+        );
+        $options = array_values($options);
+
+        return $options;
     }
 
     /**
