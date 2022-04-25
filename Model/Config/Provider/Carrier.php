@@ -44,6 +44,8 @@ class Carrier extends AbstractConfigProvider
     const XPATH_CARRIER_PROCESSING_TIME                            = 'carriers/tig_gls/processing_time';
     const XPATH_CARRIER_EXPRESS_PARCEL_ACTIVE                      = 'carriers/tig_gls/express_parcel_active';
     const XPATH_CARRIER_ALLOW_API_ORDER_SERVICE                    = 'carriers/tig_gls/allow_api_order_service';
+    const XPATH_CARRIER_ALLOW_CHANNABLE_ORDER_SERVICE              = 'carriers/tig_gls/allow_channable_order_service';
+    const XPATH_CARRIER_ADD_CHANNABLE_TO_LABEL                     = 'carriers/tig_gls/add_channable_to_label';
     const XPATH_CARRIER_BUSINESS_PARCEL_FLEX_DELIVERY              = 'carriers/tig_gls/business_parcel_services/flex_delivery_active';
     const XPATH_CARRIER_BUSINESS_PARCEL_SATURDAY_SERVICE           = 'carriers/tig_gls/business_parcel_services/saturday_active';
     const XPATH_CARRIER_BUSINESS_PARCEL_SATURDAY_HANDLING_FEE      = 'carriers/tig_gls/business_parcel_services/saturday_handling_fee';
@@ -92,6 +94,22 @@ class Carrier extends AbstractConfigProvider
     public function getAllowApiOrderService()
     {
         return $this->getConfigValue(self::XPATH_CARRIER_ALLOW_API_ORDER_SERVICE);
+    }
+
+    /**
+     * @return string
+     */
+    public function getAllowChannableOrderService()
+    {
+        return $this->getConfigValue(self::XPATH_CARRIER_ALLOW_CHANNABLE_ORDER_SERVICE);
+    }
+
+    /**
+     * @return string
+     */
+    public function getAddChannableToLabel()
+    {
+        return $this->getConfigValue(self::XPATH_CARRIER_ADD_CHANNABLE_TO_LABEL);
     }
 
     /**

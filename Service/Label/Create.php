@@ -202,17 +202,21 @@ class Create extends ShippingInformation
         if (!$deliveryOption) {
             return false;
         }
-
-        $channable = false;
-        try {
-            $deliveryAddress = $this->addChannableIdIfAvailable($deliveryOption->deliveryAddress, $order->getId());
-            $channable = true; // just a precaution, this may fail due to no Channable tables
-        } catch (\Exception $exception) {
-            // just catch
-        }
-        if(!$channable) {
+        if($this->carrierConfig->getAddChannableToLabel()) {
+            $channable = false;
+            try {
+                $deliveryAddress = $this->addChannableIdIfAvailable($deliveryOption->deliveryAddress, $order->getId());
+                $channable = true; // just a precaution, this may fail due to no Channable tables
+            } catch (\Exception $exception) {
+                // just catch
+            }
+            if (!$channable) {
+                $deliveryAddress = $deliveryOption->deliveryAddress;
+            }
+        } else {
             $deliveryAddress = $deliveryOption->deliveryAddress;
         }
+
         $labelType       = $this->getLabelType();
 
         $data                      = $this->addShippingInformation($controllerModule, $version);
