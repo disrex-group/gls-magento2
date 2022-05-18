@@ -121,16 +121,22 @@
                 <comment><![CDATA[If enabled, orders through Magento API using GLS will auto-select first possible delivery time]]></comment>
             </field>
 
-            <field id="allow_channable_order_service" translate="label" type="select" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
+            <field id="allow_channable_order_service" translate="label" type="select" sortOrder="110" showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
                 <label>Allow Channable Order auto-select first delivery time</label>
                 <source_model>Magento\Config\Model\Config\Source\Enabledisable</source_model>
                 <comment><![CDATA[If enabled, orders through Channable using GLS will auto-select first possible delivery time.]]></comment>
             </field>
 
-            <field id="add_channable_to_label" translate="label" type="select" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
+            <field id="add_channable_to_label" translate="label" type="select" sortOrder="120" showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
                 <label>Add Channable Label and channable id to GLS Label</label>
                 <source_model>Magento\Config\Model\Config\Source\Enabledisable</source_model>
                 <comment><![CDATA[If enabled, channable label and id are added to GLS label. E.g. bol.com 134114]]></comment>
+            </field>
+
+            <field id="channable_shipping_cost" translate="label" type="text" sortOrder="130" showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
+                <label>Channable Fee</label>
+                <validate>validate-number validate-zero-or-greater</validate>
+                <comment><![CDATA[Shipping fee that is charged for Channable orders. Set to 0 for no extra fee.]]></comment>
             </field>
 
             <include path="TIG_GLS::system/services/business_parcel.xml" />

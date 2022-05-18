@@ -39,6 +39,14 @@ use TIG\GLS\Model\Config\Provider\Carrier;
 
 class Shipping
 {
+    protected $carrier;
+
+    public function __construct(
+        Carrier $carrier
+    ) {
+        $this->carrier = $carrier;
+    }
+
     /**
      * @param                       $subject
      * @param                       $result
@@ -65,9 +73,19 @@ class Shipping
             return $result;
         }
 
+        $isChannableOrder = false; // is it a channable order
+        $payment         = $quote->getPayment()->getMethod();
+        if(trim($payment) == 'channable') {
+            $isChannableOrder = true; // it is a channable order
+        }
+
         $rate    = $this->extractRate($shipping->getMethod(), $rates);
         $details = $deliveryOption->details;
-        $fee     = $this->calculateFee($rate['price'], $details->fee ?? 0);
+        if($isChannableOrder) {
+            $fee = (float)$this->carrier->getChannableShippingCost();
+        } else {
+            $fee = $this->calculateFee($rate['price'], $details->fee ?? 0);
+        }
         $title   = isset($details->title) ? $details->title : Carrier::GLS_DELIVERY_OPTION_PARCEL_SHOP_LABEL;
 
         $this->adjustTotals($rate['method_title'], $subject->getCode(), $address, $total, $fee, $title);
