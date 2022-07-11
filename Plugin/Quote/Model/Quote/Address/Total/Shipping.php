@@ -59,19 +59,23 @@ class Shipping
     // @codingStandardsIgnoreLine
     public function afterCollect($subject, $result, Quote $quote, ShippingAssignmentApi $shippingAssignment, QuoteAddressTotal $total)
     {
-        $shipping = $shippingAssignment->getShipping();
-        $address  = $shipping->getAddress();
-        $rates    = $address->getAllShippingRates();
+	    $shipping = $shippingAssignment->getShipping();
+	    $address  = $shipping->getAddress();
+	    $rates    = $address->getAllShippingRates();
 
-        if (!$rates) {
-            return $result;
-        }
+	    if (!$rates) {
+		    return $result;
+	    }
 
-        $deliveryOption = $this->getDeliveryOption($address);
+	    if ($shipping->getMethod() != 'tig_gls_tig_gls') {
+		    return $result;
+	    }
 
-        if (!$deliveryOption) {
-            return $result;
-        }
+	    $deliveryOption = $this->getDeliveryOption($address);
+
+	    if (!$deliveryOption) {
+		    return $result;
+	    }
 
         $isChannableOrder = false; // is it a channable order
         $payment         = $quote->getPayment()->getMethod();
@@ -81,6 +85,7 @@ class Shipping
 
         $rate    = $this->extractRate($shipping->getMethod(), $rates);
         $details = $deliveryOption->details;
+
         if($isChannableOrder) {
             $fee = (float)$this->carrier->getChannableShippingCost();
         } else {
