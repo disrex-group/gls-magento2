@@ -239,6 +239,13 @@ class QuoteManagement
         if(strlen($shippingName) > 30) {
             $shippingName = substr($shippingName, 0, 30);
         }
+        $phone = $shipping->getTelephone();
+        if(isset($phone) && strlen($phone) > 15) {
+            $phone = str_replace(' ','', $phone);
+            if(strlen($phone) > 15) {
+                $phone = substr($phone,0,15);
+            }
+        }
         if(isset($company) && strlen($company) > 2) {
             if(strlen($company) > 30) {
                 $company = substr($company, 0, 30);
@@ -254,7 +261,7 @@ class QuoteManagement
                 'city' => $shipping->getCity(),
                 // If Shipping Address is same as Billing Address, Email is only saved in Billing.
                 'email' => $shipping->getEmail() ?: $billing->getEmail(),
-                'phone' => $shipping->getTelephone() ?: '+00000000000',
+                'phone' => $phone ?: '+00000000000',
                 'addresseeType' => $shipping->getCompany() ? 'b' : 'p'
             ];
         } else {
@@ -269,7 +276,7 @@ class QuoteManagement
                 'city' => $shipping->getCity(),
                 // If Shipping Address is same as Billing Address, Email is only saved in Billing.
                 'email' => $shipping->getEmail() ?: $billing->getEmail(),
-                'phone' => $shipping->getTelephone() ?: '+00000000000',
+                'phone' => $phone ?: '+00000000000',
                 'addresseeType' => $shipping->getCompany() ? 'b' : 'p'
             ];
         }
