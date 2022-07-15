@@ -39,6 +39,7 @@ use Magento\Sales\Api\ShipmentRepositoryInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Shipment;
 use Magento\Store\Model\ScopeInterface;
+use Magento\Quote\Api\CartRepositoryInterface;
 use TIG\GLS\Model\Config\Provider\Carrier;
 use TIG\GLS\Plugin\Quote\Model\QuoteManagement;
 use TIG\GLS\Service\ShippingDate;
@@ -115,6 +116,8 @@ class Create extends ShippingInformation
     /** @var ResourceConnection */
     private $resourceConnection;
 
+    /** @var CartRepositoryInterface $cartRepository */
+    private $cartRepository;
 
     /**
      * @param EndpointLabelCreate         $createLabel
@@ -200,7 +203,33 @@ class Create extends ShippingInformation
         }
 
         if (!$deliveryOption) {
-            return false;
+            //
+            try {
+                $quoteId = $order->getQuoteId();
+            } catch (\Exception $exception) {
+                // just catch
+            }
+            if(isset($quoteId) && $quoteId > 0) {
+                $connection = $this->resourceConnection->getConnection();
+                $sql = 'SELECT `gls_delivery_option` FROM `quote_address` WHERE `address_type` = "shipping" AND `quote_id` = '.$quoteId;
+                $results = $connection->fetchRow($sql);
+                if (isset($results) && is_array($results)) {
+                    $deliveryOptionFromQuote = $results['gls_delivery_option'];
+                    if(isset($deliveryOptionFromQuote) && strlen($deliveryOptionFromQuote) > 0) {
+                        try {
+                            $order->setGlsDeliveryOption($deliveryOptionFromQuote);
+                            $order->save();
+                        } catch (\Exception $exception) {
+                            // just catch
+                        }
+                    }
+                    $deliveryOption = json_decode($deliveryOptionFromQuote);
+                } else {
+                    return false;
+                }
+            } else {
+                return false;
+            }
         }
         if($this->carrierConfig->getAddChannableToLabel()) {
             $channable = false;

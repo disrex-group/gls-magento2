@@ -34,6 +34,7 @@ namespace TIG\GLS\Plugin\Quote\Model;
 
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
+use Magento\Quote\Model\QuoteManagement as MagentoQuoteManagement;
 use TIG\GLS\Model\Config\Provider\Carrier;
 use TIG\GLS\Service\DeliveryOptions\Services as ServicesService;
 
@@ -66,6 +67,46 @@ class QuoteManagement
         $this->orderRepository = $orderRepository;
         $this->services = $services;
         $this->carrier = $carrier;
+    }
+
+    public function beforeSubmit(
+        MagentoQuoteManagement $subject,
+                        $quote,
+                        $data = []
+    ) {
+        /* @var $quote \Magento\Quote\Model\Quote */
+        $payment         = $quote->getPayment()->getMethod();
+        if(trim($payment) == 'channable') {
+            $isChannableOrder = true; // it is a channable order
+        } else {
+            $isChannableOrder = false;
+        }
+        $shippingAddress = $quote->getShippingAddress();
+        $billingAddress  = $quote->getBillingAddress();
+        $deliveryOption  = $shippingAddress->getGlsDeliveryOption();
+
+        if (!$deliveryOption) {
+            if($this->carrier->getAllowChannableOrderService() && $isChannableOrder) {
+                $deliveryOption = $this->getDeliveryOptionsForApiOrder($shippingAddress, $billingAddress);
+                $deliveryOption = json_decode($deliveryOption);
+                $type           = $deliveryOption->type;
+
+                if (!isset($deliveryOption) || !$deliveryOption) {
+                    // nothing
+                } else {
+                    if (!isset($deliveryOption->deliveryAddress)) {
+                        $deliveryOption->deliveryAddress = $this->mapDeliveryAddress($shippingAddress, $billingAddress);
+                        $shippingAddress->setGlsDeliveryOption(json_encode($deliveryOption));
+                    }
+                    $shippingAddress->setGlsDeliveryOption(json_encode($deliveryOption));
+                    if ($type == Carrier::GLS_DELIVERY_OPTION_PARCEL_SHOP_LABEL) {
+                        $this->changeShippingAddress($deliveryOption->details, $shippingAddress);
+                    }
+                }
+            }
+        }
+
+        return [$quote, $data];
     }
 
     /**
