@@ -1,6 +1,6 @@
-# TIG GLS Netherlands for Magento 2
+# Disrex GLS Netherlands for Magento 2 (Formerly TIG GLS)
 
-![TIG GLS tested 2.3.x versions](https://img.shields.io/badge/Tested%20with-2.3.5&#8211;p2-%23009f3e)
+![TIG GLS tested 2.3.x versions](https://img.shields.io/badge/Tested%20with-2.3.5-&#8211;p2-%23009f3e)
 ![TIG GLS tested 2.4.x versions](https://img.shields.io/badge/Tested%20with-2.4.1-%23009f3e)
 
 We created this extension to **easily integrate GLS' Delivery Services into Magento 2**. 
@@ -19,7 +19,7 @@ We created this extension to **easily integrate GLS' Delivery Services into Mage
 * Offer discounts or calculate additional for specific Delivery Services.
 
 ## Installation using Composer
-<pre>composer require tig/gls-magento2</pre>
+<pre>composer require disrex-group/gls-magento2</pre>
 
 ## Installation without using Composer
 _Clone_ or _download_ the contents of this repository into `app/code/TIG/GLS`.

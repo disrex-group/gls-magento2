@@ -1,8 +1,8 @@
 {
-    "name": "b2bzanden/tig-gls-magento2",
+    "name": "disrex-group/gls-magento2",
     "description": "Forked TIG Magento 2 GLS extension",
     "require": {
-        "php": "7.*",
+        "php": "7.*|^8.1",
         "magento/framework": "~101.0|~102.0|~103.0",
         "ext-json": "*"
     },
@@ -18,10 +18,10 @@
         }
     ],
     "support": {
-        "email": "support@tig.nl",
-        "issues": "https://portal.tig.nl/"
+        "email": "support@disrex.nl",
+        "issues": "https://www.disrex.nl"
     },
-    "homepage": "https://tig.nl/",
+    "homepage": "https://www.disrex.nl",
     "keywords": [
         "GLS",
         "Official GLS extension",
